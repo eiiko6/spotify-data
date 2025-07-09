@@ -33,6 +33,7 @@ async fn main() {
     let cors = CorsLayer::new()
         .allow_origin(
             get_redirect_uri()
+                .replace("/spotify-data", "")
                 .replace("/callback", "")
                 .parse::<HeaderValue>()
                 .unwrap(),
