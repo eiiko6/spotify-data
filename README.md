@@ -1,9 +1,25 @@
 # Spotify Data
 
-## What?
-A small website made with [Vite](https://vitejs.dev/) + [TS](https://www.typescriptlang.org/) that gives you info on your Spotify account.     
-(I'll add a preview image here)
+A small website made with [Vite](https://vitejs.dev/) + [TypeScript](https://www.typescriptlang.org/) and a [Rust](https://www.rust-lang.org/) backend using [Axum](https://github.com/tokio-rs/axum).  
+It shows you info from your Spotify account: top tracks & artists over multiple time ranges, your profile, and more.
 
-## How?
-The website will ask for a client ID. See Spotify's [Documentation](https://developer.spotify.com/documentation/web-api/tutorials/getting-started) to create your app.     
-The redirect URI is set to `http://localhost:5173/callback` and you may have to change it. Be sure to include this URI in your app's redirects.
+![I'll add a preview image here]
+
+## How does it work?
+
+- **Frontend** (TypeScript, Vite):  
+  A basic web page that handles UI and authentication redirect logic. It fetches with your Rust backend.
+  
+- **Backend** (Rust, Axum):  
+  Handles Spotify OAuth, token exchange, and API requests (e.g. `/profile`, `/top_tracks`, etc).
+
+---
+
+## Environment Setup
+
+You **must provide the following environment variables** for the backend:
+
+```bash
+SPOTIFY_CLIENT_ID=your-client-id-here
+SPOTIFY_CLIENT_SECRET=your-client-secret-here
+```
