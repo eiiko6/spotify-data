@@ -19,6 +19,10 @@ pub struct AppState {
     pub client: Client,
 }
 
+fn get_redirect_uri() -> String {
+    std::env::var("SPOTIFY_REDIRECT_URI").unwrap()
+}
+
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
@@ -27,7 +31,7 @@ async fn main() {
     });
 
     let cors = CorsLayer::new()
-        .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
+        .allow_origin(get_redirect_uri().parse::<HeaderValue>().unwrap())
         .allow_methods(Any)
         .allow_headers(Any);
 
@@ -49,7 +53,7 @@ async fn main() {
 
 async fn login() -> impl IntoResponse {
     let client_id = env::var("SPOTIFY_CLIENT_ID").unwrap();
-    let redirect_uri = String::from("http://localhost:5173/callback");
+    let redirect_uri = get_redirect_uri();
 
     let scopes = "user-read-private user-read-email user-top-read";
 
@@ -88,7 +92,7 @@ async fn callback(
 async fn exchange_code_for_token(client: &Client, code: &str) -> Result<TokenResponse, String> {
     let client_id = env::var("SPOTIFY_CLIENT_ID").unwrap();
     let client_secret = env::var("SPOTIFY_CLIENT_SECRET").unwrap();
-    let redirect_uri = String::from("http://localhost:5173/callback");
+    let redirect_uri = get_redirect_uri();
 
     let mut form = HashMap::new();
     form.insert("grant_type", "authorization_code");
