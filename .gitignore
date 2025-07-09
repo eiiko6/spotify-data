@@ -7,11 +7,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-src/config.json
+# JS
+frontend/node_modules
+frontend/dist
 
 # Editor directories and files
 .vscode/*
@@ -23,3 +21,7 @@ src/config.json
 *.njsproj
 *.sln
 *.sw?
+
+# Rust
+/target
+/result
