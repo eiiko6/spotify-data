@@ -1,6 +1,6 @@
 use axum::{
     extract::{Query, State},
-    http::HeaderValue,
+    http::{uri::Uri, HeaderValue},
     response::{IntoResponse, Redirect},
     routing::get,
     serve, Json, Router,
@@ -70,25 +70,51 @@ async fn login() -> impl IntoResponse {
         redirect_uri
     );
 
+    println!("Redirecting to Spotify login: {}", url);
     Redirect::temporary(&url)
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct CallbackQuery {
-    code: String,
+    code: Option<String>,
+    error: Option<String>,
 }
 
 async fn callback(
+    uri: Uri,
     State(state): State<Arc<AppState>>,
     Query(params): Query<CallbackQuery>,
 ) -> impl IntoResponse {
-    match exchange_code_for_token(&state.client, &params.code).await {
-        Ok(token) => Json(token).into_response(),
-        Err(err_msg) => {
-            eprintln!("Error in /callback: {}", err_msg);
+    println!("Callback URI: {}", uri);
+
+    match (&params.code, &params.error) {
+        (Some(code), _) => {
+            println!("Received code: {}", code);
+            match exchange_code_for_token(&state.client, code).await {
+                Ok(token) => Json(token).into_response(),
+                Err(err_msg) => {
+                    eprintln!("Error in /callback: {}", err_msg);
+                    (
+                        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                        format!("Token error: {}", err_msg),
+                    )
+                        .into_response()
+                }
+            }
+        }
+        (None, Some(error)) => {
+            eprintln!("Spotify returned an error: {}", error);
             (
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Token error: {}", err_msg),
+                axum::http::StatusCode::BAD_REQUEST,
+                format!("Spotify error: {}", error),
+            )
+                .into_response()
+        }
+        (None, None) => {
+            eprintln!("Missing both `code` and `error` in query");
+            (
+                axum::http::StatusCode::BAD_REQUEST,
+                "Missing `code` in query".to_string(),
             )
                 .into_response()
         }

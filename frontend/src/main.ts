@@ -34,7 +34,7 @@ let accessToken: string | null = null;
 if (storedToken !== null) {
   accessToken = storedToken;
 } else if (code !== null) {
-  const tokenRes = await fetch(`http://localhost:3000/callback?code=${code}`);
+  const tokenRes = await fetch(`/spotify-api/callback?code=${code}`);
   const tokenData = await tokenRes.json();
   accessToken = tokenData.access_token;
 
@@ -44,18 +44,19 @@ if (storedToken !== null) {
 
   window.history.replaceState({}, document.title, window.location.pathname);
 } else {
-  window.location.href = "http://localhost:3000/login";
+  window.location.href = "/spotify-api/login";
 }
 
 if (accessToken) {
   // Fetch data via backend
-  const profile = await (await fetch(`http://localhost:3000/profile?access_token=${accessToken}`)).json();
-  const topTracksLong = await (await fetch(`http://localhost:3000/top_tracks?access_token=${accessToken}&range=long_term`)).json();
-  const topTracksMedium = await (await fetch(`http://localhost:3000/top_tracks?access_token=${accessToken}&range=medium_term`)).json();
-  const topTracksShort = await (await fetch(`http://localhost:3000/top_tracks?access_token=${accessToken}&range=short_term`)).json();
-  const topArtistsLong = await (await fetch(`http://localhost:3000/top_artists?access_token=${accessToken}&range=long_term`)).json();
-  const topArtistsMedium = await (await fetch(`http://localhost:3000/top_artists?access_token=${accessToken}&range=medium_term`)).json();
-  const topArtistsShort = await (await fetch(`http://localhost:3000/top_artists?access_token=${accessToken}&range=short_term`)).json();
+  const profile = await (await fetch(`/spotify-api/profile?access_token=${accessToken}`)).json();
+  const topTracksLong = await (await fetch(`/spotify-api/top_tracks?access_token=${accessToken}&range=long_term`)).json();
+  const topTracksMedium = await (await fetch(`/spotify-api/top_tracks?access_token=${accessToken}&range=medium_term`)).json();
+  const topTracksShort = await (await fetch(`/spotify-api/top_tracks?access_token=${accessToken}&range=short_term`)).json();
+  const topArtistsLong = await (await fetch(`/spotify-api/top_artists?access_token=${accessToken}&range=long_term`)).json();
+  const topArtistsMedium = await (await fetch(`/spotify-api/top_artists?access_token=${accessToken}&range=medium_term`)).json();
+  const topArtistsShort = await (await fetch(`/spotify-api/top_artists?access_token=${accessToken}&range=short_term`)).json();
+
 
   // Display
   populateUIProfile(profile);
@@ -135,4 +136,3 @@ function populateUIElements(tracksContainerId: string, tracks: trackInfo[], arti
     });
   }
 }
-
