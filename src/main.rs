@@ -31,7 +31,12 @@ async fn main() {
     });
 
     let cors = CorsLayer::new()
-        .allow_origin(get_redirect_uri().parse::<HeaderValue>().unwrap())
+        .allow_origin(
+            get_redirect_uri()
+                .replace("/callback", "")
+                .parse::<HeaderValue>()
+                .unwrap(),
+        )
         .allow_methods(Any)
         .allow_headers(Any);
 
