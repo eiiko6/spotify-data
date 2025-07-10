@@ -1,27 +1,23 @@
 import './style.css'
 
-interface trackInfo {
-  name: string;
-  album_image_url: string;
-  artist_names: string[];
+// === PKCE utilities ===
+function generateCodeVerifier(): string {
+  const array = new Uint8Array(64);
+  crypto.getRandomValues(array);
+  return btoa(String.fromCharCode(...array))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
-interface artistInfo {
-  name: string;
-  artist_image_url: string;
-  artist_followers: number;
-  artist_profile_link: string;
-}
-
-interface UserProfile {
-  display_name: string;
-  id: string;
-  email: string;
-  product: string;
-  external_urls: { spotify: string };
-  followers: { total: number };
-  country: string;
-  images: { url: string }[];
+async function generateCodeChallenge(codeVerifier: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(codeVerifier);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 // === Startup flow ===
@@ -34,29 +30,44 @@ let accessToken: string | null = null;
 if (storedToken !== null) {
   accessToken = storedToken;
 } else if (code !== null) {
-  const tokenRes = await fetch(`http://localhost:3000/callback?code=${code}`);
-  const tokenData = await tokenRes.json();
-  accessToken = tokenData.access_token;
+  const codeVerifier = sessionStorage.getItem("pkce_code_verifier");
+  if (!codeVerifier) {
+    console.error("Missing code_verifier for PKCE flow");
+  } else {
+    const clientId = sessionStorage.getItem("spotify_client_id");
+    const tokenRes = await fetch(`http://localhost:3000/callback?code=${code}&code_verifier=${codeVerifier}&client_id=${clientId}`);
+    const tokenData = await tokenRes.json();
+    accessToken = tokenData.access_token;
 
-  if (accessToken) {
-    sessionStorage.setItem("access_token", accessToken);
+    if (accessToken) {
+      sessionStorage.setItem("access_token", accessToken);
+    }
+
+    window.history.replaceState({}, document.title, window.location.pathname);
   }
-
-  window.history.replaceState({}, document.title, window.location.pathname);
 } else {
-  const storedClientId = localStorage.getItem("spotify_client_id");
+  const storedClientId = sessionStorage.getItem("spotify_client_id");
 
   if (!storedClientId) {
-    document.getElementById("startAuth")?.addEventListener("click", () => {
+    document.getElementById("startAuth")?.addEventListener("click", async () => {
       const input = (document.getElementById("clientIdInput") as HTMLInputElement).value;
       if (input.trim()) {
-        localStorage.setItem("spotify_client_id", input.trim());
+        sessionStorage.setItem("spotify_client_id", input.trim());
+        sessionStorage.setItem("spotify_client_id", input.trim());
 
-        window.location.href = `http://localhost:3000/login?client_id=${encodeURIComponent(input.trim())}`;
+        const codeVerifier = generateCodeVerifier();
+        const codeChallenge = await generateCodeChallenge(codeVerifier);
+        sessionStorage.setItem("pkce_code_verifier", codeVerifier);
+
+        window.location.href = `http://localhost:3000/login?client_id=${encodeURIComponent(input.trim())}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
       }
     });
   } else {
-    window.location.href = `http://localhost:3000/login?client_id=${encodeURIComponent(storedClientId)}`;
+    const codeVerifier = generateCodeVerifier();
+    const codeChallenge = await generateCodeChallenge(codeVerifier);
+    sessionStorage.setItem("pkce_code_verifier", codeVerifier);
+
+    window.location.href = `http://localhost:3000/login?client_id=${encodeURIComponent(storedClientId)}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
   }
 }
 
@@ -76,7 +87,6 @@ if (accessToken) {
   const topArtistsLong = await (await fetch(`http://localhost:3000/top_artists?access_token=${accessToken}&range=long_term`)).json();
   const topArtistsMedium = await (await fetch(`http://localhost:3000/top_artists?access_token=${accessToken}&range=medium_term`)).json();
   const topArtistsShort = await (await fetch(`http://localhost:3000/top_artists?access_token=${accessToken}&range=short_term`)).json();
-
 
   // Display
   populateUIProfile(profile);
