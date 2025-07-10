@@ -1,74 +1,56 @@
-import './style.css'
+import './style.css';
 
-interface trackInfo {
-  name: string;
-  album_image_url: string;
-  artist_names: string[];
-}
-
-interface artistInfo {
-  name: string;
-  artist_image_url: string;
-  artist_followers: number;
-  artist_profile_link: string;
-}
-
-interface UserProfile {
-  display_name: string;
-  id: string;
-  email: string;
-  product: string;
-  external_urls: { spotify: string };
-  followers: { total: number };
-  country: string;
-  images: { url: string }[];
-}
-
-// === Startup flow ===
-const params = new URLSearchParams(window.location.search);
-const code = params.get("code");
-const storedToken = sessionStorage.getItem("access_token");
-
+// === Auth + Startup ===
 let accessToken: string | null = null;
 
-if (storedToken !== null) {
-  accessToken = storedToken;
-} else if (code !== null) {
-  const tokenRes = await fetch(`http://localhost:3000/callback?code=${code}`);
-  const tokenData = await tokenRes.json();
-  accessToken = tokenData.access_token;
+// Try to extract from URL fragment first
+const hashParams = new URLSearchParams(window.location.hash.substring(1));
+const token = hashParams.get("access_token");
 
-  if (accessToken) {
-    sessionStorage.setItem("access_token", accessToken);
-  }
-
-  window.history.replaceState({}, document.title, window.location.pathname);
+if (token) {
+  sessionStorage.setItem("access_token", token);
+  window.location.hash = "";
+  accessToken = token;
 } else {
-  const storedClientId = localStorage.getItem("spotify_client_id");
-
-  if (!storedClientId) {
-    document.getElementById("startAuth")?.addEventListener("click", () => {
-      const input = (document.getElementById("clientIdInput") as HTMLInputElement).value;
-      if (input.trim()) {
-        localStorage.setItem("spotify_client_id", input.trim());
-
-        window.location.href = `http://localhost:3000/login?client_id=${encodeURIComponent(input.trim())}`;
-      }
-    });
-  } else {
-    window.location.href = `http://localhost:3000/login?client_id=${encodeURIComponent(storedClientId)}`;
+  const storedToken = sessionStorage.getItem("access_token");
+  if (storedToken) {
+    accessToken = storedToken;
   }
 }
 
-if (accessToken) {
-  // Change the UI
-  const promptEl = document.getElementById("client-id-prompt");
-  if (promptEl) promptEl.style.display = "none";
+if (!accessToken) {
+  document.getElementById("startAuth")?.addEventListener("click", () => {
+    const input = (document.getElementById("clientIdInput") as HTMLInputElement).value.trim();
+    if (input) {
+      localStorage.setItem("spotify_client_id", input);
+
+      const scopes = [
+        "user-read-private",
+        "user-read-email",
+        "user-top-read",
+      ].join(" ");
+
+      const redirectUri = window.location.origin + "/spotify-data/callback";
+
+      console.log(redirectUri);
+
+      const authUrl = new URL("https://accounts.spotify.com/authorize");
+      authUrl.searchParams.set("client_id", input);
+      authUrl.searchParams.set("response_type", "token");
+      authUrl.searchParams.set("redirect_uri", redirectUri);
+      authUrl.searchParams.set("scope", scopes);
+      authUrl.searchParams.set("show_dialog", "true");
+
+      window.location.href = authUrl.toString();
+    }
+  });
+} else {
+  // Auth successful
+  document.getElementById("client-id-prompt")?.classList.add("hidden");
   document.getElementById("profile")?.classList.remove("hidden");
   document.getElementById("topArtists")?.classList.remove("hidden");
   document.getElementById("topTracks")?.classList.remove("hidden");
 
-  // Fetch data via backend
   const profile = await (await fetch(`http://localhost:3000/profile?access_token=${accessToken}`)).json();
   const topTracksLong = await (await fetch(`http://localhost:3000/top_tracks?access_token=${accessToken}&range=long_term`)).json();
   const topTracksMedium = await (await fetch(`http://localhost:3000/top_tracks?access_token=${accessToken}&range=medium_term`)).json();
@@ -77,8 +59,6 @@ if (accessToken) {
   const topArtistsMedium = await (await fetch(`http://localhost:3000/top_artists?access_token=${accessToken}&range=medium_term`)).json();
   const topArtistsShort = await (await fetch(`http://localhost:3000/top_artists?access_token=${accessToken}&range=short_term`)).json();
 
-
-  // Display
   populateUIProfile(profile);
   populateUIElements("long-topTracks", topTracksLong, "long-topArtists", topArtistsLong);
   populateUIElements("medium-topTracks", topTracksMedium, "medium-topArtists", topArtistsMedium);

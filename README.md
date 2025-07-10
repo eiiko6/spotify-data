@@ -5,6 +5,10 @@ It shows you info from your Spotify account: top tracks & artists over multiple 
 
 ![I'll add a preview image here]
 
+## DISCLAIMER
+
+This branch uses the implicit grant flow, which only requires the client ID. However it seems to have been deprecated by spotify so somehow only old applications can use it.
+
 ## How does it work?
 
 - **Frontend** (TypeScript, Vite):  
@@ -17,11 +21,9 @@ It shows you info from your Spotify account: top tracks & artists over multiple 
 
 ## Environment Setup
 
-You **must provide the following environment variables** for the backend:
+You **must provide the following environment variable** for the backend:
 
 ```bash
-SPOTIFY_CLIENT_ID=your-client-id-here
-SPOTIFY_CLIENT_SECRET=your-client-secret-here
 SPOTIFY_REDIRECT_URI=http://your-domain.com/spotify-data/callback
 ```
 
@@ -56,22 +58,7 @@ in {
         tryFiles = "$uri $uri/ /index.html";
       };
 
-      locations."/spotify-data/callback" = {
-        root = "/var/www";
-        tryFiles = "$uri $uri/ /spotify-data/index.html";
-      };
-
       # spotify-data backend (spotify-api)
-      locations."/spotify-api/login" = {
-        proxyPass = "http://127.0.0.1:3000/login";
-        extraConfig = proxyHeaders;
-      };
-
-      locations."/spotify-api/callback" = {
-        proxyPass = "http://127.0.0.1:3000/callback$is_args$args";
-        extraConfig = proxyHeaders;
-      };
-
       locations."/spotify-api/profile" = {
         proxyPass = "http://127.0.0.1:3000/profile";
         extraConfig = proxyHeaders;
