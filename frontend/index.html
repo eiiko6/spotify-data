@@ -9,7 +9,13 @@
     <div id="app">
       <h1>Spotify Data</h1>
 
-      <section id="profile">
+      <div id="client-id-prompt">
+        <label for="clientIdInput">Grab a Spotify API client ID from the <a href="https://developer.spotify.com/dashboard" targer="_blank">developer dashboard</a></label>
+        <input type="text" id="clientIdInput" placeholder="Enter your Spotify client ID" />
+        <button id="startAuth">Start</button>
+      </div>
+
+      <section id="profile" class="hidden">
         <h2>Profile:</h2>
         <div class="h-lists">
           <div class="list h-list">
@@ -52,7 +58,7 @@
         </div>
       </section>
 
-      <section id="topArtists">
+      <section id="topArtists" class="hidden">
         <h2>Top Artists:</h2>
         <button id="toggleButton" class="toggle-button" onclick="const artists = document.querySelectorAll('.toggle-artists'); artists.forEach(element => {element.classList.toggle('hidden');});">Toggle</button>
         <div id="topArtistsParent" class="h-lists toggle-artists">
@@ -73,7 +79,7 @@
         </div>
       </section>
 
-      <section id="topTracks">
+      <section id="topTracks" class="hidden">
         <h2>Top Tracks:</h2>
         <button id="toggleButton" class="toggle-button" onclick="const tracks = document.querySelectorAll('.toggle-tracks'); tracks.forEach(element => {element.classList.toggle('hidden');});">Toggle</button>
         <div id="topTracksParent" class="h-lists toggle-tracks">

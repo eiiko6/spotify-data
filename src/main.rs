@@ -1,6 +1,6 @@
 use axum::{
     extract::{Query, State},
-    http::{uri::Uri, HeaderValue},
+    http::HeaderValue,
     response::{IntoResponse, Redirect},
     routing::get,
     serve, Json, Router,
@@ -57,15 +57,19 @@ async fn main() {
     serve(listener, app).await.unwrap();
 }
 
-async fn login() -> impl IntoResponse {
-    let client_id = env::var("SPOTIFY_CLIENT_ID").unwrap();
+#[derive(Deserialize)]
+struct LoginQuery {
+    client_id: String,
+}
+
+async fn login(Query(params): Query<LoginQuery>) -> impl IntoResponse {
     let redirect_uri = get_redirect_uri();
 
     let scopes = "user-read-private user-read-email user-top-read";
 
     let url = format!(
         "https://accounts.spotify.com/authorize?response_type=code&client_id={}&scope={}&redirect_uri={}&show_dialog=true",
-        client_id,
+        params.client_id,
         scopes,
         redirect_uri
     );
@@ -81,27 +85,21 @@ struct CallbackQuery {
 }
 
 async fn callback(
-    uri: Uri,
     State(state): State<Arc<AppState>>,
     Query(params): Query<CallbackQuery>,
 ) -> impl IntoResponse {
-    println!("Callback URI: {}", uri);
-
     match (&params.code, &params.error) {
-        (Some(code), _) => {
-            println!("Received code: {}", code);
-            match exchange_code_for_token(&state.client, code).await {
-                Ok(token) => Json(token).into_response(),
-                Err(err_msg) => {
-                    eprintln!("Error in /callback: {}", err_msg);
-                    (
-                        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                        format!("Token error: {}", err_msg),
-                    )
-                        .into_response()
-                }
+        (Some(code), _) => match exchange_code_for_token(&state.client, code).await {
+            Ok(token) => Json(token).into_response(),
+            Err(err_msg) => {
+                eprintln!("Error in /callback: {}", err_msg);
+                (
+                    axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("Token error: {}", err_msg),
+                )
+                    .into_response()
             }
-        }
+        },
         (None, Some(error)) => {
             eprintln!("Spotify returned an error: {}", error);
             (
