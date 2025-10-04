@@ -49,10 +49,9 @@ if (storedToken !== null) {
   const storedClientId = sessionStorage.getItem("spotify_client_id");
 
   if (!storedClientId) {
-    document.getElementById("startAuth")?.addEventListener("click", async () => {
+    const startAuth = async () => {
       const input = (document.getElementById("clientIdInput") as HTMLInputElement).value;
       if (input.trim()) {
-        sessionStorage.setItem("spotify_client_id", input.trim());
         sessionStorage.setItem("spotify_client_id", input.trim());
 
         const codeVerifier = generateCodeVerifier();
@@ -60,6 +59,16 @@ if (storedToken !== null) {
         sessionStorage.setItem("pkce_code_verifier", codeVerifier);
 
         window.location.href = `http://localhost:3000/login?client_id=${encodeURIComponent(input.trim())}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
+      }
+    };
+
+    document.getElementById("startAuth")?.addEventListener("click", startAuth);
+
+    // Trigger on Enter key press
+    const clientIdInput = document.getElementById("clientIdInput") as HTMLInputElement;
+    clientIdInput?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        startAuth();
       }
     });
   } else {
@@ -135,6 +144,11 @@ function populateUIElements(tracksContainerId: string, tracks: trackInfo[], arti
       const trackInfoDiv = document.createElement("div");
       trackInfoDiv.textContent = track.name + " by " + track.artist_names.join(", ");
       trackContainer.appendChild(trackInfoDiv);
+
+      trackContainer.style.cursor = "pointer";
+      trackContainer.addEventListener("click", () => {
+        window.open(track.track_url, "_blank");
+      });
 
       tracksContainer.appendChild(trackContainer);
     });

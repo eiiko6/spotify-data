@@ -32,6 +32,7 @@ pub struct TopRequestParams {
 pub struct TrackInfo {
     pub name: String,
     pub album_image_url: String,
+    pub track_url: String,
     pub artist_names: Vec<String>,
 }
 
@@ -54,6 +55,11 @@ struct SpotifyTrackAlbumImage {
 }
 
 #[derive(Deserialize)]
+struct SpotifyExternalUrls {
+    spotify: String,
+}
+
+#[derive(Deserialize)]
 struct SpotifyTrackAlbum {
     images: Vec<SpotifyTrackAlbumImage>,
 }
@@ -63,6 +69,7 @@ struct SpotifyTrackItem {
     name: String,
     artists: Vec<SpotifyTrackArtist>,
     album: SpotifyTrackAlbum,
+    external_urls: SpotifyExternalUrls,
 }
 
 #[derive(Deserialize)]
@@ -153,6 +160,7 @@ pub async fn get_top_tracks(
                 .map(|img| img.url.clone())
                 .unwrap_or_default(),
             artist_names: item.artists.into_iter().map(|a| a.name).collect(),
+            track_url: item.external_urls.spotify,
         })
         .collect();
 

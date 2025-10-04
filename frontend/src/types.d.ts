@@ -2,6 +2,7 @@ interface trackInfo {
   name: string;
   album_image_url: string;
   artist_names: string[];
+  track_url: string;
 }
 
 interface artistInfo {

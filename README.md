@@ -5,6 +5,10 @@ It shows you info from your Spotify account: top tracks & artists over multiple 
 
 ![I'll add a preview image here]
 
+## Disclaimer
+
+This was merely for me to learn about APIs. This structure where a server separate from the clients is the one making the requests to Spotify is pretty bad.
+
 ## How does it work?
 
 - **Frontend** (TypeScript, Vite):  
@@ -20,8 +24,6 @@ It shows you info from your Spotify account: top tracks & artists over multiple 
 You **must provide the following environment variables** for the backend:
 
 ```bash
-SPOTIFY_CLIENT_ID=your-client-id-here
-SPOTIFY_CLIENT_SECRET=your-client-secret-here
 SPOTIFY_REDIRECT_URI=http://your-domain.com/spotify-data/callback
 ```
 

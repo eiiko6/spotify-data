@@ -3,11 +3,12 @@
 
   --color-bg: linear-gradient(135deg, #1e1b2f, #1e1b2f, #2e2a50);
   --color-card-bg: rgba(255, 255, 255, 0.04);
+  --color-card-bg: rgba(255, 255, 255, 0.04);
   --color-hover-bg: rgba(255, 255, 255, 0.06);
 
   --color-text: #e0e0e0;
   --color-accent: #9d8df1;
-  --color-accent-hover: #b2a7f5;
+  --color-accent-hover: #b2a7f555;
   --color-link: #aabaff;
 }
 
@@ -27,7 +28,7 @@ body {
 }
 
 #app {
-  max-width: 1400px;
+  max-width: 1800px;
   width: 90%;
   padding: 2rem;
   display: flex;
@@ -71,7 +72,7 @@ button {
 }
 button:hover {
   background-color: var(--color-accent-hover);
-  border-color: white;
+  border-color: var(--color-link);
 }
 
 a {
@@ -134,7 +135,7 @@ input {
   right: 1rem;
   font-size: 0.85rem;
   background-color: transparent;
-  border: 1px solid #8e44ec;
+  border: 2px solid #9d8df1;
 }
 
 .track-container,
@@ -146,6 +147,9 @@ input {
   background-color: rgba(255, 255, 255, 0.03);
   transition: background-color 0.3s ease;
   margin-bottom: 5px;
+  max-width: 500px;
+  overflow-x: auto;
+  white-space: nowrap;
 }
 .track-container:hover,
 .artist-container:hover {
